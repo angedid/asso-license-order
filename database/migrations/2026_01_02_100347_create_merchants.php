@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('tenant_id')->index()->nullable(false);
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
-            $table->enum('type',['MERCHANT_USER', 'SELLER_USER'])->nullable(false)->default('MERCHANT_USER');
+            $table->enum('type',['MERCHANT_USER', 'MERCHANT_ADMINISTRATOR'])->nullable(false)->default('MERCHANT_ADMINISTRATOR');
             $table->uuid('account_id')->index()->nullable();
             $table->string('full_name')->nullable(false);
             $table->string('username')->unique()->nullable(false);
