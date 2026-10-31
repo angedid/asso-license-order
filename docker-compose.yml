@@ -1,0 +1,77 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: asso-license-order:latest
+    container_name: asso-license-order-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: "Smart Trade Platform - License Order"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: asso-license-order
+      DB_USERNAME: postgres
+      DB_PASSWORD: secretpassword
+      QUEUE_CONNECTION: sync
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+    networks:
+      - stp-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: asso-license-order-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: asso-license-order
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d asso-license-order"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stp-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: asso-license-order-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    networks:
+      - stp-network
+
+networks:
+  stp-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+  rabbitmqdata:
+    driver: local
